@@ -1,6 +1,9 @@
 require 'net/http'
 require 'json'
 
+class ApiError < StandardError
+end
+
 class ApiClient
 	BASE_URL = "https://api.prokerala.com/"
 	# Make sure that the following file path is set to a location that is not publicly accessible
@@ -13,13 +16,18 @@ class ApiClient
 	end
 
 	def parseResponse(response)
-		res = JSON.parse(response)
+		content = response.body
+		res = JSON.parse(content)
 
-		if res['status'] == "error"
-			raise res['errors'].map {|e| e['detail']}.join("\n")
+		if res.key?('access_token')
+			return res
 		end
 
-		if not res.key?('access_token') and res['status'] != "ok"
+		if res['status'] == "error"
+			raise ApiError, res['errors'].map {|e| e['detail']}.join("\n")
+		end
+
+		if res['status'] != "ok"
 			raise "HTTP request failed"
 		end
 
@@ -65,7 +73,7 @@ class ApiClient
 		}
 
 		res = Net::HTTP.post_form(URI(ApiClient::BASE_URL + 'token'), params)
-		token = parseResponse(res.body)
+		token = parseResponse(res)
 
 		saveToken(token)
 
@@ -87,6 +95,6 @@ class ApiClient
 			http.request(req)
 		end
 
-		return JSON.parse(res.body)
+		return parseResponse(res)
 	end
 end
