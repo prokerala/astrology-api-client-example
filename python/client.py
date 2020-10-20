@@ -4,8 +4,6 @@ import os
 import json
 import time
 
-from pprint import pprint
-
 try:
 	from urllib.parse import urlparse, urlencode
 	from urllib.request import urlopen, Request
@@ -19,6 +17,21 @@ class ApiError(Exception):
 	"""Base class for exceptions in this module."""
 	pass
 
+class AuthenticationError(ApiError):
+	pass
+
+class ValidationError(ApiError):
+	def __init__(self, code, message, validationMessages):
+		self.code = code
+		self.message = 'Input data validation failed'
+		self.validationMessages = validationMessages
+
+	def getValidationMessages(self):
+		return self.validationMessages
+
+class ServerError(ApiError):
+	pass
+
 class ApiClient:
 	BASE_URL = "https://api.prokerala.com/"
 	# Make sure that the following file path is set to a location that is not publicly accessible
@@ -30,18 +43,28 @@ class ApiClient:
 
 	def parseResponse(self, response):
 		content = response.read()
-		res = json.loads(content)
 
-		if 'access_token' in res:
+		res = json.loads(content)
+		status = response.getcode()
+
+		if status == 200:
 			return res
 
-		if res['status'] == "error":
-			raise ApiError(map(lambda e: e['detail'], res['errors']).join("\n"))
-
-		if res['status'] != "ok":
+		if res['status'] != "error":
 			raise ApiError("HTTP request failed")
 
-		return res
+		errors = res['errors']
+
+		if status == 400:
+			raise ValidationError(400, 'Validation failed', errors)
+
+		if status == 403:
+			raise AuthenticationError(403, errors[0].detail)
+
+		if status >= 500:
+			raise ServerError(response.code, errors[0].detail)
+
+		raise ApiError(0, 'Unexpected error')
 
 	def saveToken(self, token):
 		# Cache the token until it expires.
@@ -69,24 +92,25 @@ class ApiClient:
 			return token['access_token']
 		except ValueError:
 			return None
-		end
 
 	def fetchNewToken(self):
-		data = {
-			'grant_type': 'client_credentials',
-			'client_id': self.clientId,
-			'client_secret': self.clientSecret
-		}
+		try:
+			data = {
+				'grant_type': 'client_credentials',
+				'client_id': self.clientId,
+				'client_secret': self.clientSecret
+			}
 
-		data = urlencode(data)
+			data = urlencode(data)
 
-		request = Request(self.BASE_URL + '/token', data.encode('ascii'))
-		response = urlopen(request)
-		token = self.parseResponse(response)
+			request = Request(self.BASE_URL + '/token', data.encode('ascii'))
+			response = urlopen(request)
+			token = self.parseResponse(response)
+			self.saveToken(token)
 
-		self.saveToken(token)
-
-		return token['access_token']
+			return token['access_token']
+		except HTTPError as e:
+			self.parseResponse(response)
 
 	def get(self, endpoint, params):
 		# Try to fetch the access token from cache
@@ -95,10 +119,12 @@ class ApiClient:
 			# If failed, request new token
 			token = self.fetchNewToken()
 
-		uri = self.BASE_URL + endpoint + '?' + urlencode(params)
-		request = Request(uri, headers={'Authorization': 'Bearer ' + token})
-		response = urlopen(request)
-
-		return self.parseResponse(response)
+		try:
+			uri = self.BASE_URL + endpoint + '?' + urlencode(params)
+			request = Request(uri, headers={'Authorization': 'Bearer ' + token})
+			response = urlopen(request)
+			return self.parseResponse(response)
+		except HTTPError as e:
+			self.parseResponse(e)
 
 
