@@ -66,31 +66,43 @@ namespace Prokerala\Api\Sample {
             curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
             $response = curl_exec($ch);
             $responseCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
             curl_close($ch);
 
 
-            $token = $this->parseResponse($response, $responseCode);
+            $token = $this->parseResponse($response, $responseCode, $contentType);
             $this->saveToken($token);
 
             return $token->access_token;
         }
 
-        private function parseResponse($response, $responseCode)
+        /**
+         * Parse API Response.
+         * @param string $response     Response body.
+         * @param int    $responseCode HTTP Status code.
+         * @param string $contentType  Response content type.
+         * @return string|\stdClass
+         */
+        private function parseResponse($response, $responseCode, $contentType)
         {
-            $res = json_decode( $response );
+            $res = $response;
 
-            if ( $responseCode === 200 ) {
+            if ('application/json' === strtok($contentType, ';')) {
+                $res = json_decode($res);
+            }
+
+            if ($responseCode === 200) {
                 return $res;
             }
 
-            if ( $res->status !== "error" ) {
+            if ($res->status !== "error") {
                 throw new Exception\ApiError( "HTTP request failed" );
             }
 
             $errors = $res->errors;
 
-            if ($responseCode === 400 ) {
-                throw new Exception\ValidationError( 'Validation failed', 400, $errors );
+            if ($responseCode === 400) {
+                throw new Exception\ValidationError('Validation failed', 400, $errors);
             }
 
             if ($responseCode === 401) {
@@ -129,9 +141,10 @@ namespace Prokerala\Api\Sample {
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             $response = curl_exec($ch);
             $responseCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
             curl_close($ch); // Close the connection
 
-            return $this->parseResponse($response, $responseCode);
+            return $this->parseResponse($response, $responseCode, $contentType);
         }
     }
 }
