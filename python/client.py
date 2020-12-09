@@ -15,6 +15,9 @@ except ImportError:
 
 class ApiError(Exception):
 	"""Base class for exceptions in this module."""
+	def __init__(self, code, message):
+		self.code = code
+		self.message = message
 	pass
 
 class AuthenticationError(ApiError):
@@ -42,9 +45,14 @@ class ApiClient:
 		self.clientSecret = clientSecret
 
 	def parseResponse(self, response):
-		content = response.read()
+		res = response.read()
 
-		res = json.loads(content)
+		contentType = response.info().getheader('Content-Type')
+		contentType = contentType.split(';', 1)[0]
+
+		if (contentType == "application/json"):
+			res = json.loads(res)
+
 		status = response.getcode()
 
 		if status == 200:
@@ -58,11 +66,14 @@ class ApiClient:
 		if status == 400:
 			raise ValidationError(400, 'Validation failed', errors)
 
+		if status == 401:
+			raise AuthenticationError(403, errors[0]['detail'])
+
 		if status == 403:
-			raise AuthenticationError(403, errors[0].detail)
+			raise AuthenticationError(403, errors[0]['detail'])
 
 		if status >= 500:
-			raise ServerError(response.code, errors[0].detail)
+			raise ServerError(response.code, errors[0]['detail'])
 
 		raise ApiError(0, 'Unexpected error')
 
@@ -110,7 +121,7 @@ class ApiClient:
 
 			return token['access_token']
 		except HTTPError as e:
-			self.parseResponse(response)
+			self.parseResponse(e)
 
 	def get(self, endpoint, params):
 		# Try to fetch the access token from cache
