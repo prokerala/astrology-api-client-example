@@ -11,7 +11,7 @@ def run():
 			'coordinates': '23.1765,75.7885',
 			'datetime': '2020-10-19T12:31:14+00:00',
 		})
-		print json.dumps(result, indent=4)
+		print(json.dumps(result, indent=4))
 	except ValidationError as e:
 		for msg in e.getValidationMessages():
 			print(msg['detail'])

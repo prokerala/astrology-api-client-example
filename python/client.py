@@ -5,11 +5,10 @@ import json
 import time
 
 try:
-	from urllib.parse import urlparse, urlencode
+	from urllib.parse import urlencode
 	from urllib.request import urlopen, Request
 	from urllib.error import HTTPError
 except ImportError:
-	from urlparse import urlparse
 	from urllib import urlencode
 	from urllib2 import urlopen, Request, HTTPError
 
@@ -47,7 +46,7 @@ class ApiClient:
 	def parseResponse(self, response):
 		res = response.read()
 
-		contentType = response.info().getheader('Content-Type')
+		contentType = response.info()["content-type"]
 		contentType = contentType.split(';', 1)[0]
 
 		if (contentType == "application/json"):
