@@ -149,6 +149,10 @@ namespace Prokerala\Api\Sample {
                 throw new Exception\ServerError($errors[0]->detail, $responseCode);
             }
 
+            if ($responseCode === 404) {
+                throw new Exception\ServerError($errors[0]->detail, $responseCode);
+            }
+
             throw new Exception\ApiError('Unexpected error');
         }
     }
