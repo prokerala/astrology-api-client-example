@@ -1,0 +1,13 @@
+name = "prokerala-api-proxy"
+type = 'webpack'
+account_id = ''
+route = ''
+zone_id = ''
+usage_model = ''
+workers_dev = true
+target_type = "webpack"
+kv_namespaces = [
+  { binding = "USER_COUNT", id = "" },
+  { binding = "TOKEN", id = "" }
+]
+

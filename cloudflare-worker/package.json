@@ -1,0 +1,11 @@
+{
+  "name": "prokerala-api-proxy",
+  "version": "1.0.0",
+  "description": "A proxy server to handle OAuth2 authentication to Prokerala API Server for native and single page apps.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Prokerala <support+api@prokerala.com>",
+  "license": "GPL-3.0"
+}
