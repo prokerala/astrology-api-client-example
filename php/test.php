@@ -10,7 +10,7 @@ try {
     $data = $client->get('v2/astrology/panchang', [
         'ayanamsa' => 1,
         'coordinates' => '23.1765,75.7885',
-        'datetime' => '2020-10-19T12:31:14 00:00'
+        'datetime' => '2020-10-19T12:31:14+05:30'
     ]);
     print_r($data);
 } catch (ValidationError $error) {
