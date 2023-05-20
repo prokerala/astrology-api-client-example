@@ -56,11 +56,18 @@ try visiting the following url after replacing `<YOUR_SUBDOMAIN>` with your actu
 https://prokerala-api-proxy.<YOUR_SUBDOMAIN>.workers.dev/v2/astrology/panchang?datetime=2004-02-12T15:19:21Z&ayanamsa=1&coordinates=10.21,78.09
 ```
 
-## Warning
+## Security
 
-While this script protects your credentials, inspection of the application can reveal the URL to your proxy service.
-A malicious user can make requests on your behalf by using the Proxy URL. Rate limit is the first step towards preventing abuse.
+While this script protects your credentials, inspection of the application can reveal the URL of your proxy service.
+A malicious user can still make requests on your behalf by using the Proxy URL. Rate limit is the first step towards 
+preventing abuse.
 
-To properly secure your API access, you need to authenticate each user from within the proxy script before allowing the request.
+To further secure your API from unauthorized access, you need to authenticate each user from within the proxy script 
+before allowing the request. If your app already has user authentication, you may use a per-user API Key instead of 
+IP address for rate limiting. This limits the API access to users of your app, and if you detect suspicious activity 
+from a particular API key, you can revoke that key without affecting other clients.
 
-
+A more secure approach is to use a form of client authentication that doesn't require distributing secret keys to 
+clients. For example, you might use a system where the client authenticates to your server (possibly using a username 
+and password, or a federated identity system like OAuth), and your server issues a short-lived, signed token that the 
+client can use to authenticate to the proxy service.
