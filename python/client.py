@@ -5,11 +5,11 @@ import json
 import time
 
 try:
-	from urllib.parse import urlencode
+	from urllib.parse import urlencode, quote
 	from urllib.request import urlopen, Request
 	from urllib.error import HTTPError
 except ImportError:
-	from urllib import urlencode
+	from urllib import urlencode, quote
 	from urllib2 import urlopen, Request, HTTPError
 
 class ApiError(Exception):
@@ -130,11 +130,32 @@ class ApiClient:
 			token = self.fetchNewToken()
 
 		try:
-			uri = self.BASE_URL + endpoint + '?' + urlencode(params)
-			request = Request(uri, headers={'Authorization': 'Bearer ' + token})
+			uri = (
+				self.BASE_URL
+				+ endpoint
+				+ "?"
+				+ self.serialize(params)
+			)
+			request = Request(uri, headers={"Authorization": "Bearer " + token})
 			response = urlopen(request)
+
 			return self.parseResponse(response)
 		except HTTPError as e:
 			self.parseResponse(e)
 
+	def flatten(self, obj, parentKey="", params={}):
+		for key, value in obj.items():
+			paramName = f"{parentKey}[{key}]" if parentKey else key
+			if isinstance(value, dict):
+				self.flatten(value, paramName, params)
+			elif isinstance(value, list):
+				params[f"{paramName}[]"] = value
+			elif isinstance(value, bool):
+				params[paramName] = "true" if value else "false"
+			else:
+				params[paramName] = value
 
+		return params
+
+	def serialize(self, params):
+		return urlencode(self.flatten(params), doseq=True)

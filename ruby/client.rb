@@ -4,6 +4,24 @@ require 'json'
 class ApiError < StandardError
 end
 
+class AuthenticationError < ApiError
+end
+
+class ValidationError < ApiError
+	def __init__(code, message, validationMessages)
+		self.code = code
+		self.message = 'Input data validation failed'
+		self.validationMessages = validationMessages
+	end
+
+	def getValidationMessages()
+		return self.validationMessages
+	end
+end
+
+class ServerError < ApiError
+end
+
 class ApiClient
 	BASE_URL = "https://api.prokerala.com/"
 	# Make sure that the following file path is set to a location that is not publicly accessible
@@ -87,7 +105,7 @@ class ApiClient
 		token ||= fetchNewToken
 
 		uri = URI(ApiClient::BASE_URL + endpoint)
-		uri.query = URI.encode_www_form(params)
+		uri.query = serialize(params)
 
 		req = Net::HTTP::Get.new(uri.to_s, {'Authorization' => 'Bearer ' + token})
 
@@ -96,5 +114,27 @@ class ApiClient
 		end
 
 		return parseResponse(res)
+	end
+
+	def serialize(hash, parentKey = nil)
+		query_array = []
+
+		hash.each do |key, value|
+			if parentKey
+				key = "#{parentKey}[#{key}]"
+			end
+
+			if value.is_a?(Hash)
+				query_array << serialize(value, key)
+			elsif value.is_a?(Array)
+				value.each do |v|
+					query_array << "#{key}[]=#{URI.encode_www_form_component(v)}"
+				end
+			else
+				query_array << "#{key}=#{URI.encode_www_form_component(value)}"
+			end
+		end
+
+		query_array.join('&')
 	end
 end
