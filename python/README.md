@@ -2,6 +2,14 @@
 
 This is a sample API client written in [Python](https://www.python.org/) for accessing Prokerala Astrology API.
 
+## Installation
+
+Install the package from Python Package Index
+
+```
+pip install prokerala-api
+```
+
 ## Usage
 
 You can find your `clientId` and `clientSecret` in your [dashboard](https://api.prokerala.com/account/client)
@@ -12,7 +20,7 @@ You can find your `clientId` and `clientSecret` in your [dashboard](https://api.
 ```python
 #!/usr/bin/env python
 
-from client import ApiClient
+from prokerala_api import ApiClient
 import json
 
 def run():

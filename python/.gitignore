@@ -1,0 +1,5 @@
+.venv
+token.json
+__pycache__
+*.pyc
+dist/

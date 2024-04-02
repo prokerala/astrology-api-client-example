@@ -1,0 +1,23 @@
+[project]
+name = "prokerala-api"
+version = "0.1.0"
+authors = [
+  { name="Joyce Babu", email="joyce@ennexa.com" },
+]
+description = "SDK for accessing Prokerala API"
+readme = "README.md"
+requires-python = ">=3.0"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/prokerala/astrology-api-client-example"
+Issues = "https://github.com/prokerala/astrology-api-client-example/issues"
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
