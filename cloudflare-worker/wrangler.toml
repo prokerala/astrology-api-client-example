@@ -1,13 +1,15 @@
+#:schema node_modules/wrangler/config-schema.json
 name = "prokerala-api-proxy"
-type = 'webpack'
-account_id = ''
-route = ''
-zone_id = ''
-usage_model = ''
+main = "src/index.js"
+compatibility_date = "2024-05-12"
+compatibility_flags = ["nodejs_compat"]
+
 workers_dev = true
-target_type = "webpack"
 kv_namespaces = [
   { binding = "USER_COUNT", id = "" },
   { binding = "TOKEN", id = "" }
 ]
 
+[vars]
+CLIENT_ID = "your_client_id"
+CLIENT_SECRET = "your_client_secret"

@@ -4,8 +4,20 @@
   "description": "A proxy server to handle OAuth2 authentication to Prokerala API Server for native and single page apps.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "start": "wrangler dev",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.1.0",
+    "vitest": "1.3.0",
+    "wrangler": "^3.0.0"
   },
   "author": "Prokerala <support+api@prokerala.com>",
-  "license": "GPL-3.0"
+  "license": "GPL-3.0",
+  "dependencies": {
+    "@tsndr/cloudflare-worker-jwt": "^2.5.3",
+    "jsonwebtoken": "^9.0.2"
+  }
 }
