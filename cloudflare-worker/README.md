@@ -1,18 +1,32 @@
-## Cloudflare Worker Based OAuth Proxy
+# Cloudflare Worker Based OAuth Proxy
 
-This is a simple proxy using Cloudflare Workers to make authenticated requests to the Prokerala API without bundling your OAuth2 credentials with your native applications.
+A simple proxy using Cloudflare Workers to make authenticated requests to the Prokerala API
 
-We use Cloudflare [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) tool in the instructions below. It is possible to create the Key Value namespaces and worker directly from your Cloudflare dashboard.
+## Overview
 
-## Configuration
+This proxy allows you to make authenticated requests to the Prokerala API without exposing your OAuth2 credentials in your native/distributed applications. We will use Cloudflare's `wrangler` tool, but you can also create Key-Value (KV) namespaces and workers directly from the Cloudflare dashboard.
 
-### Credentials
+## Setup Instructions
 
-Update the `CLIENT_ID` and `CLIENT_SECRET` variables in `wrangler.toml` with the client ID and client secret from your Prokerala API Dashboard.
+### 1. Install Wrangler
 
-### Middleware
+First, install the Cloudflare `wrangler` CLI tool if you haven't already:
 
-You can add custom middleware in `config.js` to restrict access to your proxy. A few sample middleware are available under the [src/middleware](src/middleware) directory.
+```sh
+npm install -g @cloudflare/wrangler
+```
+
+### 2. Configure Credentials
+
+Update the `wrangler.toml` file with your Prokerala API client ID and client secret:
+
+```toml
+[vars]
+CLIENT_ID = "your_client_id"
+CLIENT_SECRET = "your_client_secret"
+```
+
+### 3. Add Middleware
 
 - #### RateLimit
 
@@ -24,11 +38,11 @@ You can add custom middleware in `config.js` to restrict access to your proxy. A
 
 - #### JWT
 
-  The JWT validator middleware authenticates your API requests using public key authentication. If properly configured, the JWT authentication can fully prevent unauthorized access.
+  The JWT validator middleware authenticates your API requests using shared secret/public key authentication. If properly configured, the JWT authentication can fully prevent unauthorized access.
 
-- #### Custom Middleware
+- #### Example Custom Middleware
 
-  You can create your own custom middleware by passing a function that accepts the `Request` object and returns a `Response` or throws an `ApiError`.
+  You can create custom middleware by adding a function that processes the `Request` object:
 
   ```javascript
   // config.js
@@ -40,43 +54,43 @@ You can add custom middleware in `config.js` to restrict access to your proxy. A
         if (response.status === 200) {
           return response;
         }
-
-        return null; // Pass the request to the next middleware / API server
+        return null; // Proceed to the next middleware/API server
       },
     ],
   };
   ```
 
-## Local Testing
+### 4. Local Testing
 
-Create a KV namespace for previewing and update `wrangler.toml` with the generated `preview_id`.
+To test your setup locally, create KV namespaces and update your `wrangler.toml` with the `preview_id`:
 
 ```sh
 wrangler kv:namespace create --preview TOKEN
 wrangler kv:namespace create --preview USER_COUNT
 ```
-Export your cloudflare api token.
+
+Export your Cloudflare API token:
 
 ```sh
 export CLOUDFLARE_API_TOKEN='Your_API_Token'
 ```
 
-Start the local web server for testing by running:
+Then, start the local server:
 
 ```sh
 wrangler dev
 ```
 
-## Production
+### 5. Deploy to Production
 
-Create a KV namespace for production and update `wrangler.toml` with the generated `id`.
+Create KV namespaces for production and update `wrangler.toml` with the generated IDs:
 
 ```sh
 wrangler kv:namespace create TOKEN
 wrangler kv:namespace create USER_COUNT
 ```
 
-Deploy to Cloudflare Worker edge with:
+Deploy your worker:
 
 ```sh
 wrangler publish
@@ -87,28 +101,32 @@ This will output a message like the following with your Cloudflare Worker hostna
 > ✨ Successfully published your script to
 > https://prokerala-api-proxy.<YOUR_SUBDOMAIN>.workers.dev
 
-Now you can access the API without authentication by using the Worker hostname instead of `api.prokerala.com`. For example, try visiting the following URL after replacing `<YOUR_SUBDOMAIN>` with your actual Cloudflare Worker subdomain.
+Now you can access the API without authentication by using the Worker hostname instead of `api.prokerala.com`.
+
+## Example API Call
+
+Here is an example of how to make a request through the proxy:
 
 ```sh
-https://prokerala-api-proxy.<YOUR_SUBDOMAIN>.workers.dev/v2/astrology/panchang?datetime=2004-02-12T15:19:21Z&ayanamsa=1&coordinates=10.21,78.09
+curl https://prokerala-api-proxy.<YOUR_SUBDOMAIN>.workers.dev/v2/astrology/panchang?datetime=2004-02-12T15:19:21Z&ayanamsa=1&coordinates=10.21,78.09
 ```
 
 ## Troubleshooting
 
-- While switching to remote mode in wrangler, if you are getting the following error:
+- If you encounter the following error while switching to remote mode in wrangler:
 
   > A request to the Cloudflare API (/memberships) failed.
 
-  set the environment variable `CLOUDFLARE_ACCOUNT_ID` to your account ID. ([See Issue](https://github.com/cloudflare/workers-sdk/issues/1422))
+  Set the `CLOUDFLARE_ACCOUNT_ID` environment variable:
 
   ```sh
-  export CLOUDFLARE_ACCOUNT_ID="CHANGE_TO_YOUR_ACCOUNT_ID"
+  export CLOUDFLARE_ACCOUNT_ID="YOUR_ACCOUNT_ID"
   ```
 
-## Security
+## Security Considerations
 
-While this script protects your credentials, inspection of the application can reveal the URL of your proxy service. A malicious user can still make requests on your behalf by using the proxy URL. Rate limiting is the first step towards preventing abuse.
+While this script protects your credentials, it is possible for someone to discover the URL of your proxy service and misuse it. Implementing rate limiting is the first step to prevent abuse.
 
-To further secure your API from unauthorized access, you need to authenticate each user from within the proxy script before allowing the request. If your app already has user authentication, you may use a per-user API key instead of an IP address for rate limiting. This limits the API access to users of your app, and if you detect suspicious activity from a particular API key, you can revoke that key without affecting other clients.
+To further secure your API, ensure that each user is authenticated within the proxy script before processing their requests. If your application already has user authentication, consider using per-user API keys instead of IP addresses for rate limiting. This approach confines API access to your app’s users and allows you to revoke a compromised API key without affecting others.
 
-A more secure approach is to use a form of client authentication that doesn't require distributing secret keys to clients. For example, you might use a system where the client authenticates to your server (possibly using a username and password, or a federated identity system like OAuth), and your server issues a short-lived, signed token that the client can use to authenticate to the proxy service.
+An even more secure method is to use client authentication that doesn't involve distributing secret keys. For example, clients can authenticate to your server using a username and password or a federated identity system like OAuth. Your server can then issue a short-lived, signed JSON Web Token (JWT) for the client to use when authenticating with the proxy service.
