@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Astrology Report</title>
+<style>
+body {
+font-family: Arial, sans-serif;
+margin: 0;
+padding: 20px;
+background-color: #f9f9f9;
+max-width: 600px;
+margin: auto;
+}
+h1, h2 {
+  color: #333;
+}
+.section {
+  margin-bottom: 20px;
+}
+.section h2 {
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 5px;
+}
+.details, .yoga-details {
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+}
+.dasha-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.dasha-table th, .dasha-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+.dasha-table th {
+  background-color: #f2f2f2;
+}
+.logo {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.mangal-dosha-present {
+  background-color: #ffcccc;
+}
+.mangal-dosha-absent {
+  background-color: #ccffcc;
+}
+.rasi-icon, .zodiac-icon {
+  font-size: 1.5em;
+  margin-right: 10px;
+}
+</style>
+</head>
+<body>
+
+  <div class="logo">
+    <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+      <!-- Add your SVG content here -->
+      <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="white" />
+      <text x="50" y="55" font-size="20" text-anchor="middle" fill="black">Logo</text>
+    </svg>
+  </div>
+
+  <h1>Astrology Report</h1>
+
+  <div class="section">
+    <h2>Birth Details</h2>
+    <div class="details">
+      <h3>Nakshatra</h3>
+      <p><strong>Name:</strong> {{ data.nakshatra_details.nakshatra.name }}</p>
+      <p><strong>Lord:</strong> {{ data.nakshatra_details.nakshatra.lord.name }} ({{ data.nakshatra_details.nakshatra.lord.vedic_name }})</p>
+      <p><strong>Pada:</strong> {{ data.nakshatra_details.nakshatra.pada }}</p>
+    </div>
+    <div class="details">
+      <h3>Chandra Rasi</h3>
+      <p class="rasi-icon">&#x1F311;</p>
+      <p><strong>Name:</strong> {{ data.nakshatra_details.chandra_rasi.name }}</p>
+      <p><strong>Lord:</strong> {{ data.nakshatra_details.chandra_rasi.lord.name }} ({{ data.nakshatra_details.chandra_rasi.lord.vedic_name }})</p>
+    </div>
+    <div class="details">
+      <h3>Soorya Rasi</h3>
+      <p class="rasi-icon">&#x1F31E;</p>
+      <p><strong>Name:</strong> {{ data.nakshatra_details.soorya_rasi.name }}</p>
+      <p><strong>Lord:</strong> {{ data.nakshatra_details.soorya_rasi.lord.name }} ({{ data.nakshatra_details.soorya_rasi.lord.vedic_name }})</p>
+    </div>
+    <div class="details">
+      <h3>Zodiac</h3>
+      <p class="zodiac-icon">{{ data.nakshatra_details.zodiac.name | zodiac_icon }}</p>
+      <p><strong>Name:</strong> {{ data.nakshatra_details.zodiac.name }}</p>
+    </div>
+    <div class="details">
+      <h3>Additional Info</h3>
+      {% for key, value in data.nakshatra_details.additional_info.items() %}
+      <p><strong>{{ key.replace('_', ' ').title() }}:</strong> {{ value }}</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Mangal Dosha</h2>
+    <div class="details {% if data.mangal_dosha.has_dosha %}mangal-dosha-present{% else %}mangal-dosha-absent{% endif %}">
+      <p><strong>Description:</strong> {{ data.mangal_dosha.description }}</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Yoga Details</h2>
+    {% for yoga in data.yoga_details %}
+    <div class="yoga-details">
+      <h3>{{ yoga.name }}</h3>
+      <p><strong>Description:</strong> {{ yoga.description }}</p>
+      <ul>
+        {% for detail in yoga.yoga_list %}
+        <li>
+          <strong>{{ detail.name }}:</strong> {{ detail.description }}
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="section">
+    <h2>Dasha Balance</h2>
+    <div class="details">
+      <p><strong>Lord:</strong> {{ data.dasha_balance.lord.name }} ({{ data.dasha_balance.lord.vedic_name }})</p>
+      <p><strong>Description:</strong> {{ data.dasha_balance.description }}</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Dasha Periods</h2>
+    {% for maha_dasha in data.dasha_periods %}
+    <h2>{{ maha_dasha.name }} Dasha ({{ maha_dasha.start | date_format("%B %d, %Y") }} - {{ maha_dasha.end | date_format("%B %d, %Y") }})</h2>
+    {% for antar_dasha in maha_dasha.antardasha %}
+    <h3>{{ antar_dasha.name }} Antar Dasha ({{ antar_dasha.start | date_format("%B %d, %Y") }} - {{ antar_dasha.end | date_format("%B %d, %Y") }})</h3>
+    <table class="dasha-table">
+      <thead>
+        <tr>
+          <th>Pratyantar Dasha</th>
+          <th>Start</th>
+          <th>End</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pratyantar_dasha in antar_dasha.pratyantardasha %}
+        <tr>
+          <td>{{ pratyantar_dasha.name }}</td>
+          <td>{{ pratyantar_dasha.start | date_format("%b %d, %Y") }}</td>
+          <td>{{ pratyantar_dasha.end | date_format("%b %d, %Y") }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endfor %}
+    {% endfor %}
+  </div>
+
+</body>
+</html>
+
