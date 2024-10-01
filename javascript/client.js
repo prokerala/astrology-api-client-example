@@ -1,4 +1,4 @@
-const https = require('https')
+import https from 'https';
 
 const BASE_URL = 'https://api.prokerala.com/';
 
@@ -176,10 +176,10 @@ class ApiClient
     }
 }
 
-module.exports = {
-    ApiClient: ApiClient,
-    ApiError: ApiError,
-    ValidationError: ValidationError,
-    AuthenticationError: AuthenticationError,
-    ServerError: ServerError,
+export {
+    ApiClient,
+    ApiError,
+    ValidationError,
+    AuthenticationError,
+    ServerError,
 }

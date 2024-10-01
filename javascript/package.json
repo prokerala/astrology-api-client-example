@@ -1,0 +1,41 @@
+{
+  "name": "@prokerala/api-client",
+  "version": "0.1.2",
+  "description": "Client for accessing Prokerala Astrology API.",
+  "exports": {
+    ".": {
+      "import": "./dist/mjs/client.js",
+      "require": "./dist/cjs/client.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rm -fr dist/* && tsc -p .npm/tsconfig.json && tsc -p .npm/tsconfig-cjs.json && ./.npm/fixup"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prokerala/astrology-api-client-example.git#master"
+  },
+  "keywords": [
+    "prokerala",
+    "api",
+    "astrology",
+    "horoscope"
+  ],
+  "author": "Joyce Babu <joyce@ennexa.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/prokerala/astrology-api-client-example/issues"
+  },
+  "homepage": "https://github.com/prokerala/astrology-api-client-example/tree/master#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.4",
+    "typescript": "^5.6.2"
+  }
+}

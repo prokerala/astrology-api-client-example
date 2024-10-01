@@ -6,11 +6,16 @@ This is a sample API client written in Javascript for accessing Prokerala Astrol
 
 You can find your `clientId` and `clientSecret` in your [dashboard](https://api.prokerala.com/account/client)
 
+Install the api clientId
+
+```
+npm install --save @prokerala/api-client
+```
 
 ### [Kundli](https://api.prokerala.com/docs#operation/get-kundli)
 
 ```javascript
-const { ApiClient } = require('./client');
+const { ApiClient } = require('@prokerala/api-client');
 
 (async () => {
     const client = new ApiClient('YOUR_CLIENT_ID', 'YOUR_CLIENT_SECRET');
