@@ -1,5 +1,5 @@
 export default (rateLimits, headerName = 'cf-connecting-ip') => {
-  return async (request, env) => {
+  return async (request, next, ctx, env) => {
     // Get the user's unique identifier
     const userIdentifier = request.headers.get(headerName) || '';
 
@@ -15,5 +15,7 @@ export default (rateLimits, headerName = 'cf-connecting-ip') => {
         expirationTtl: duration, // Reset the count after the duration
       });
     }
+
+    return next();
   };
 };

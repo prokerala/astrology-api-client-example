@@ -2,7 +2,7 @@ import ApiError from '../error';
 
 // A simple validator to restrict the allowed API Endpoints
 export default (endpoints) => {
-  return (request) => {
+  return (request, next) => {
     const url = new URL(request.url);
     if (!endpoints.includes(url.pathname)) {
       throw new ApiError(
@@ -11,5 +11,7 @@ export default (endpoints) => {
         403
       );
     }
+
+    return next();
   };
 };

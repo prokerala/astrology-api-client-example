@@ -1,80 +1,73 @@
 import config from '../config';
+import fetchToken from './token';
 import ApiError from './error';
 
-async function processMiddlewares(request, env, ctx) {
-  for (let middleware of config.middlewares) {
-    const response = await middleware(request, env, ctx);
-    if (response) {
-      return response;
-    }
-  }
+/**
+ * Compose an array of middlewares into a single function.
+ * Each middleware has the signature: (request, next, ctx, env).
+ */
+function compose(middlewares) {
+  return function(request, ctx, env) {
+    let index = -1;
+    function dispatch(i) {
+      if (i <= index) {
+        return Promise.reject(new Error('next() called multiple times'));
+      }
 
-  return null;
+      index = i;
+      const fn = middlewares[i];
+      if (!fn) {
+        return Promise.resolve(null);
+      }
+
+      return Promise.resolve(fn(request, () => dispatch(i + 1), ctx, env));
+    }
+    return dispatch(0);
+  };
 }
 
-async function handle(request, env, ctx) {
+/**
+ * Top-level handler: Runs the configured middlewares and then the default proxy logic.
+ */
+export async function handle(request, env, ctx) {
   try {
-    const middlwareResponse = await processMiddlewares(request, env, ctx);
-    if (middlwareResponse) {
-      return middlwareResponse;
-    }
+    // Get the configured middlewares.
+    let middlewares = config.middlewares;
 
-    const url = new URL(request.url);
-    let token = await env.TOKEN.get('prokerala-token');
-
-    // If no token is cached or token is expired, fetch a new one
-    if (!token) {
-      const clientId = env.CLIENT_ID;
-      const clientSecret = env.CLIENT_SECRET;
-
-      if (clientId === 'your_client_id') {
-        console.error('Enter your client credentials in wrangler.toml');
+    // Append the default proxy middleware to the end of the chain.
+    middlewares = middlewares.concat([
+      async function defaultProxyMiddleware(request, next, ctx, env) {
+        // This middleware is terminal—it forwards the request to the external API.
+        const token = await fetchToken(env.CLIENT_ID, env.CLIENT_SECRET, env.TOKEN);
+        const url = new URL(request.url);
+        url.hostname = 'api.prokerala.com';
+        const apiResponse = await fetch(url, {
+          headers: {
+            ...request.headers,
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        return apiResponse;
       }
-      const res = await fetch('https://api.prokerala.com/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: `grant_type=client_credentials&client_id=${clientId}&client_secret=${clientSecret}`,
-      });
+    ]);
 
-      if (!res.ok) {
-        return new Response('Failed to fetch token', { status: 500 });
-      }
-
-      const data = await res.json();
-      token = data.access_token;
-      // Store the token in KV storage, setting ttl to token's expiresIn value
-      await env.TOKEN.put('prokerala-token', token, {
-        expirationTtl: data.expires_in,
-      });
-    }
-
-    url.hostname = 'api.prokerala.com';
-    // Forward the request to the Prokerala API with the Authorization header
-    const apiResponse = await fetch(url, {
-      headers: {
-        ...request.headers,
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    return apiResponse;
+    // Compose and execute the middleware chain.
+    const middlewareChain = compose(middlewares);
+    return await middlewareChain(request, ctx, env);
   } catch (e) {
     if (!(e instanceof ApiError)) {
       console.error(e);
-      e = new ApiError('Proxy Error', 'Failed to process request due to an internal error.');
+      e = new ApiError('Proxy Error', 'Internal server error.', 500);
     }
 
-    return new Response(JSON.stringify({ status: 'error', errors: [e] }), {
+    return new Response(JSON.stringify({ status: 'error', errors: [e.toJSON()] }), {
       status: e.status,
-      headers: new Headers({
-        'Content-Type': 'application/json',
-      }),
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 }
 
 export default {
   fetch: handle,
+  fetchToken,
 };
