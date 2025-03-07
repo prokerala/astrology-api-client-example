@@ -65,8 +65,8 @@ CLIENT_SECRET = "your_client_secret"
 To test your setup locally, create KV namespaces and update your `wrangler.toml` with the `preview_id`:
 
 ```sh
-wrangler kv:namespace create --preview TOKEN
-wrangler kv:namespace create --preview USER_COUNT
+wrangler kv:namespace create --preview TOKEN_KV
+wrangler kv:namespace create --preview RATE_LIMIT_KV
 ```
 
 Export your Cloudflare API token:
@@ -86,8 +86,8 @@ wrangler dev
 Create KV namespaces for production and update `wrangler.toml` with the generated IDs:
 
 ```sh
-wrangler kv:namespace create TOKEN
-wrangler kv:namespace create USER_COUNT
+wrangler kv:namespace create TOKEN_KV
+wrangler kv:namespace create RATE_LIMIT_KV
 ```
 
 Deploy your worker:

@@ -6,13 +6,20 @@ compatibility_flags = ["nodejs_compat"]
 
 workers_dev = true
 kv_namespaces = [
-  { binding = "USER_COUNT", id = "179f0b5d898a4be9bed81772fee393b3" },
-  { binding = "TOKEN", id = "a35fc5b4afe34abb902dcbce00533230" }
+  #{ binding = "TOKEN_KV", preview_id = "", id = "" },
+  # For rate limit middleware
+  #{ binding = "RATE_LIMIT_KV", preview_id = "", id = "" },
+  # For shopify middleware
+  #{ binding = "SHOPIFY_STATE_KV", preview_id = "", id = "" },
+  #{ binding = "SHOPIFY_TOKEN_KV", preview_id = "", id = "" },
 ]
 
 [vars]
-CLIENT_ID = "9814f49f-5d57-4c70-af9a-616dfffc9f2f"
-CLIENT_SECRET = "VO8EKdIHFAfsaRVBy6qD81bsFNOf9EjMVGCLdDQT"
+CLIENT_ID = ""
+CLIENT_SECRET = ""
+SHOPIFY_API_KEY = ""
+SHOPIFY_API_SECRET = ""
+
 # Automatically place your workloads in an optimal location to minimize latency.
 # If you are running back-end logic in a Worker, running it closer to your back-end infrastructure
 # rather than the end user may result in better performance.
@@ -115,3 +122,6 @@ CLIENT_SECRET = "VO8EKdIHFAfsaRVBy6qD81bsFNOf9EjMVGCLdDQT"
 # [[vectorize]]
 # binding = "MY_INDEX"
 # index_name = "my-index"
+# wrangler.toml (wrangler v3.88.0^)
+[observability.logs]
+enabled = true

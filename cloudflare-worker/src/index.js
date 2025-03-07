@@ -38,7 +38,7 @@ export async function handle(request, env, ctx) {
     middlewares = middlewares.concat([
       async function defaultProxyMiddleware(request, next, ctx, env) {
         // This middleware is terminal—it forwards the request to the external API.
-        const token = await fetchToken(env.CLIENT_ID, env.CLIENT_SECRET, env.TOKEN);
+        const token = await fetchToken(env.CLIENT_ID, env.CLIENT_SECRET, env.TOKEN_KV);
         const url = new URL(request.url);
         url.hostname = 'api.prokerala.com';
         const apiResponse = await fetch(url, {
