@@ -1,9 +1,12 @@
 import rateLimitValidator from './src/middleware/ratelimit';
 import jwtValidator from './src/middleware/jwt';
 import endpointValidator from './src/middleware/endpoint';
+import enableCors from './src/middleware/cors';
 
 export default {
   middlewares: [
+    // Enable CORS for specified domains. Use * to allow all origins.
+    // enableCors(['https://yourdomain.com']),
     rateLimitValidator([
       // Set your desired per user rate limits and durations
       { duration: 60, limit: 100 }, // 100 requests per minute
