@@ -4,10 +4,13 @@ import ApiError from '../error';
 export default (endpoints) => {
   return (request, next) => {
     const url = new URL(request.url);
-    if (!endpoints.includes(url.pathname)) {
+    const pathname = url.pathname.replace(/\/+/g, '/');
+    const urlMatches = (prefix) => prefix instanceof RegExp ? prefix.test(pathname) : (pathname === prefix);
+
+    if (!endpoints.some(urlMatches)) {
       throw new ApiError(
         'Proxy Error',
-        `Endpoint denied by proxy configuration. Whitelist the path '${url.pathname}' in endpoint validator configuration to allow the request.`,
+        `Endpoint denied by proxy configuration. Whitelist the path '${pathname}' in endpoint validator configuration to allow the request.`,
         403
       );
     }
