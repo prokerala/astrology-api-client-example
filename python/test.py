@@ -6,8 +6,8 @@ import json
 
 def run():
     client = ApiClient(
-        "9814f49f-5d57-4c70-af9a-616dfffc9f2f",
-        "VO8EKdIHFAfsaRVBy6qD81bsFNOf9EjMVGCLdDQT",
+        "YOUR_CLIENT_ID",
+        "YOUR_CLIENT_SECRET",
     )
     result = client.get(
         "v2/astrology/kundli/advanced",
